@@ -1,23 +1,65 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import OrganisationList from "@/components/OrganisationList.vue";
+import TeamList from "@/components/TeamList.vue";
+import HeroList from "@/components/HeroList.vue";
+import AuthenticateView from "@/components/AuthenticateView.vue";
+import OrganisationDetail from "@/components/OrganisationDetail.vue";
+import TeamDetail from "@/components/TeamDetail.vue";
+import HeroDetail from "@/components/HeroDetail.vue";
 
 Vue.use(VueRouter)
 
 const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
+    {
+        path: '/orgs',
+        name: 'orgs',
+      components: {
+          central: OrganisationList
+      },
+    },
+    {
+        path: '/org/:id',
+        name: 'org',
+        components: {
+            central: OrganisationDetail
+        }
+    },
+    {
+        path: '/teams',
+        name: 'teams',
+        components: {
+            central: TeamList
+        }
+    },
+    {
+        path: '/team/:id',
+        name: 'team',
+        components: {
+            central: TeamDetail
+        }
+    },
+    {
+        path: '/heroes',
+        name: 'heroes',
+        components: {
+            central: HeroList
+        }
+    },
+    {
+        path: '/hero/:id',
+        name: 'hero',
+        components: {
+            central: HeroDetail
+        }
+    },
+    {
+        path: '/authenticate',
+        name: 'authenticate',
+        components: {
+            central: AuthenticateView
+        }
+    }
 ]
 
 const router = new VueRouter({
