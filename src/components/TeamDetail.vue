@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="verif">
+  <v-container v-if="this.$store.state.currentTeam">
 
     <p>Id : {{this.$store.state.currentTeam._id}}</p>
     <p>Name : {{this.$store.state.currentTeam.name}}</p>
@@ -78,7 +78,22 @@
 
   </v-container>
   <v-container v-else>
-    <p>Nothing to show</p>
+    <v-dialog v-model="dialogVisible">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Nothing to show</span>
+        </v-card-title>
+        <v-card-text>
+          Verify you have the good id and password, and that you are connected to an Organisation.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="redirectToTeams()">
+            Ok
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -88,7 +103,7 @@ import {mapActions} from "vuex";
 export default {
   name: "TeamDetail",
   data: () => ({
-    verif: false,
+    dialogVisible: false,
     headersMembers: [{
       text: 'id',
       align: 'start',
@@ -111,13 +126,16 @@ export default {
       'getCurrentTeamFromAPI',
       'getHeroesFromAPI',
       'getCurrentHeroFromAPI',
-      'clearCurrentTeam',
       'removeHeroesFromCurrentTeamToAPI',
       'addHeroesToCurrentTeamToAPI',
     ]),
 
     async goTo(item) {
       await this.$router.push("/hero/" + item._id);
+    },
+
+    async redirectToTeams() {
+      await this.$router.push("/teams");
     },
 
     async deleteItem(item) {
@@ -130,13 +148,9 @@ export default {
     async getHeroesInfos(team) {
       this.heroes = [];
       if (team === null) {
-        await this.clearCurrentTeam();
-        alert("Nothing to show");
-        await this.$router.push("/teams");
         return
       }
       if (team.members === undefined) return;
-      this.verif = true;
       for (let m of team.members) {
         await this.getCurrentHeroFromAPI(m);
         let hero = this.$store.state.currentHero;
@@ -168,7 +182,9 @@ export default {
   },
   async mounted() {
     await this.getCurrentTeamFromAPI(this.$route.params.id);
-    await this.getHeroesFromAPI();
+    if (!this.$store.state.currentTeam) {
+      this.dialogVisible = true;
+    }
     await this.getHeroesInfos(this.$store.state.currentTeam);
     await this.getAvailableHeroes();
   },

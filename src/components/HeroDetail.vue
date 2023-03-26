@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-container v-if="this.$store.state.currentHero && verif()">
+    <v-container v-if="this.$store.state.currentHero">
 
       <p>Id : {{this.$store.state.currentHero._id}}</p>
       <p>Public Name : {{this.$store.state.currentHero.publicName}}</p>
@@ -105,7 +105,22 @@
     </v-container>
 
     <v-container v-else>
-      <p>Nothing to show</p>
+      <v-dialog v-model="dialogVisible">
+        <v-card>
+          <v-card-title>
+            <span class="headline">Nothing to show</span>
+          </v-card-title>
+          <v-card-text>
+            Verify you have the good id and a good password.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="blue darken-1" text @click="redirectToHeroes()">
+              Ok
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-container>
   </div>
 </template>
@@ -115,6 +130,7 @@ import {mapActions} from "vuex";
 export default {
   name: "HeroDetail",
   data: () => ({
+    dialogVisible: false,
     headersPowers: [
       {text: 'Name', value: 'name'},
       {text: 'Type', value: 'type'},
@@ -142,11 +158,15 @@ export default {
     ],
   }),
   methods: {
-    ...mapActions(['getCurrentHeroFromAPI', 'updateCurrentHeroToAPI',"clearCurrentHero" ]),
+    ...mapActions(['getCurrentHeroFromAPI', 'updateCurrentHeroToAPI']),
     async editHero() {
       this.newPublicName = this.$store.state.currentHero.publicName;
       this.newRealName = this.$store.state.currentHero.realName;
     },
+    async redirectToHeroes() {
+      await this.$router.push("/heroes");
+    },
+
     async saveHeroName() {
       const updatedHero = {
         ...this.$store.state.currentHero,
@@ -171,15 +191,6 @@ export default {
         };
         await this.updateCurrentHeroToAPI(updatedHero);
         await this.getCurrentHeroFromAPI(this.$route.params.id);
-      }
-    },
-    async verif() {
-      if (this.$store.state.currentHero === null) {
-        alert("Nothing to show");
-        await this.$router.push("/heroes");
-        return false;
-      } else {
-        return true;
       }
     },
     getPowerType(type) {
@@ -232,30 +243,9 @@ export default {
   },
   async mounted() {
     await this.getCurrentHeroFromAPI(this.$route.params.id);
-  },
-  watch: {
-    "$route.params.id": {
-      immediate: true,
-      async handler(newId) {
-        await this.clearCurrentHero();
-        await this.getCurrentHeroFromAPI(newId);
-        if (this.$store.state.currentHero === null) {
-          alert("Nothing to show");
-          await this.$router.push("/heroes");
-        }
-      },
-    },
-    newPower: {
-      handler(newPower) {
-        this.validatePowerBtnActive =
-            newPower.name.trim() !== '' &&
-            newPower.type !== '' &&
-            newPower.level !== '' &&
-            newPower.level >= 0 &&
-            newPower.level <= 100;
-      },
-      deep: true,
-    },
+    if (!this.$store.state.currentHero) {
+      this.dialogVisible = true;
+    }
   },
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-container v-if="this.$store.state.currentOrg && verif()">
+    <v-container v-if="this.$store.state.currentOrg">
 
     <p>Id : {{this.$store.state.currentOrg._id}}</p>
     <p>Name : {{this.$store.state.currentOrg.name}}</p>
@@ -81,7 +81,22 @@
 
     </v-container>
     <v-container v-else>
-      <p>Nothing to show</p>
+      <v-dialog v-model="dialogVisible">
+        <v-card>
+          <v-card-title>
+            <span class="headline">Nothing to show</span>
+          </v-card-title>
+          <v-card-text>
+            Verify you have the good id and password.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="blue darken-1" text @click="redirectToOrgs()">
+              Ok
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-container>
   </div>
 
@@ -92,6 +107,7 @@ import {mapActions} from "vuex";
 export default {
   name: "OrganisationDetail",
   data: () => ({
+    dialogVisible: false,
     teamDialog: false,
     availableTeams: [],
     selectedTeam: "",
@@ -108,23 +124,17 @@ export default {
     ]
   }),
   methods: {
-    ...mapActions(['getCurrentOrgFromAPI','clearCurrentOrg','removeTeamFromCurrentOrgToAPI','addTeamToCurrentOrgToAPI','getTeamsFromAPI']),
+    ...mapActions(['getCurrentOrgFromAPI','removeTeamFromCurrentOrgToAPI','addTeamToCurrentOrgToAPI','getTeamsFromAPI']),
     goToTeam(item) {
       this.$router.push("/team/" + item._id);
+    },
+    async redirectToOrgs(){
+      await this.$router.push("/orgs");
     },
     async deleteTeam(item) {
       if (confirm("Are you sure you want to delete this team ?")) {
         await this.removeTeamFromCurrentOrgToAPI({idTeam: item._id});
         await this.getCurrentOrgFromAPI(this.$route.params.id);
-      }
-    },
-    async verif() {
-      if (this.$store.state.currentOrg === null) {
-        alert("Nothing to show");
-        await this.$router.push("/orgs");
-        return false;
-      } else {
-        return true;
       }
     },
     async loadAvailableTeams() {
@@ -149,29 +159,10 @@ export default {
   async mounted() {
     await this.getCurrentOrgFromAPI(this.$route.params.id);
     await this.loadAvailableTeams();
+    if (!this.$store.state.currentOrg) {
+      this.dialogVisible = true;
+    }
   },
-  watch: {
-    "$route.params.id": {
-      immediate: true,
-      async handler(newId) {
-        await this.clearCurrentOrg();
-        await this.getCurrentOrgFromAPI(newId);
-        if (this.$store.state.currentOrg === null) {
-          alert("Nothing to show");
-          await this.$router.push("/orgs");
-        }
-      },
-    },
-    "$store.state.currentOrg.teams": {
-      immediate: true,
-      async handler(newOrg) {
-        if (newOrg === null) {
-          alert("Nothing to show");
-          await this.$router.push("/orgs");
-        }
-      },
-    },
-  }
 }
 </script>
 

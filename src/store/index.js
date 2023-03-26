@@ -104,6 +104,7 @@ export default new Vuex.Store({
             }
         }
         catch(err) {
+            commit('setCurrentHero', null)
             console.log("Cas anormal dans getCurrentHeroFromAPI()")
         }
     },
@@ -283,12 +284,6 @@ export default new Vuex.Store({
             console.log("Cas anormal dans createHeroFromAPI()")
         }
       },
-      async clearCurrentOrg({ commit }) {
-          commit('setCurrentOrg', null);
-      },
-      async clearCurrentHero({ commit }) {
-            commit('setCurrentHero', null);
-      },
       async createTeamFromAPI({commit}, obj) {
         let result = null
         try {
@@ -301,10 +296,6 @@ export default new Vuex.Store({
             console.log("Cas anormal dans createTeamFromAPI()")
         }
       },
-      async clearCurrentTeam({ commit }) {
-          commit('setCurrentTeam', null);
-      }
-
   },
   modules: {
   }
