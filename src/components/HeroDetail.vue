@@ -79,7 +79,7 @@
                   <v-btn
                       color="blue darken-1"
                       text
-                      :disabled="!validatePowerBtnActive"
+                      :disabled="!(newPower.name.trim() && newPower.type.trim() && newPower.level.trim() && newPower.level >= 0 && newPower.level <= 100)"
                       @click="addPower"
                   >
                     Validate
@@ -146,7 +146,6 @@ export default {
       type: '',
       level: '',
     },
-    validatePowerBtnActive: false,
     powerTypes: [
       'force',
       'vitesse',
@@ -212,7 +211,6 @@ export default {
         type: '',
         level: '',
       };
-      this.validatePowerBtnActive = false;
     },
     powerTypeToNumber(typeName) {
       const typeMapping = {
