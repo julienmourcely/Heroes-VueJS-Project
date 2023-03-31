@@ -1,10 +1,10 @@
 <template>
   <div>
-    <v-container v-if="this.$store.state.currentHero">
+    <v-container v-if="this.$store.state.data.currentHero && !(this.$store.state.errors.isError)">
 
-      <p>Id : {{this.$store.state.currentHero._id}}</p>
-      <p>Public Name : {{this.$store.state.currentHero.publicName}}</p>
-      <p>Real Name : {{this.$store.state.currentHero.realName}}</p>
+      <p>Id : {{this.$store.state.data.currentHero._id}}</p>
+      <p>Public Name : {{this.$store.state.data.currentHero.publicName}}</p>
+      <p>Real Name : {{this.$store.state.data.currentHero.realName}}</p>
       <v-dialog v-model="editNameDialog" max-width="500px">
         <template v-slot:activator="{ on, attrs }">
           <v-btn color="primary" v-bind="attrs" v-on="on" @click="editHero">
@@ -33,7 +33,7 @@
 
       <v-data-table
           :headers="headersPowers"
-          :items="this.$store.state.currentHero.powers"
+          :items="this.$store.state.data.currentHero.powers"
           class="elevation-1"
           density="compact"
           item-key="id"
@@ -126,7 +126,7 @@
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import {mapActions, mapMutations} from "vuex";
 export default {
   name: "HeroDetail",
   data: () => ({
@@ -157,18 +157,21 @@ export default {
     ],
   }),
   methods: {
-    ...mapActions(['getCurrentHeroFromAPI', 'updateCurrentHeroToAPI']),
+    ...mapActions('data',['getCurrentHeroFromAPI', 'updateCurrentHeroToAPI']),
+    ...mapMutations('data',['setCurrentHero']),
+    ...mapMutations('errors',['pushError', 'popError']),
     async editHero() {
-      this.newPublicName = this.$store.state.currentHero.publicName;
-      this.newRealName = this.$store.state.currentHero.realName;
+      this.newPublicName = this.$store.state.data.currentHero.publicName;
+      this.newRealName = this.$store.state.data.currentHero.realName;
     },
     async redirectToHeroes() {
+      this.popError()
       await this.$router.push("/heroes");
     },
 
     async saveHeroName() {
       const updatedHero = {
-        ...this.$store.state.currentHero,
+        ...this.$store.state.data.currentHero,
         publicName: this.newPublicName,
         realName: this.newRealName
       };
@@ -183,9 +186,9 @@ export default {
     },
     async deletePower(power) {
       if (confirm("Are you sure you want to delete this power?")) {
-        const updatedPowers = this.$store.state.currentHero.powers.filter(p => p !== power);
+        const updatedPowers = this.$store.state.data.currentHero.powers.filter(p => p !== power);
         const updatedHero = {
-          ...this.$store.state.currentHero,
+          ...this.$store.state.data.currentHero,
           powers: updatedPowers
         };
         await this.updateCurrentHeroToAPI(updatedHero);
@@ -229,20 +232,23 @@ export default {
         ...this.newPower,
         type: this.powerTypeToNumber(this.newPower.type),
       };
-      const updatedPowers = [...this.$store.state.currentHero.powers, newPowerWithTypeNumber];
+      const updatedPowers = [...this.$store.state.data.currentHero.powers, newPowerWithTypeNumber];
       const updatedHero = {
-        ...this.$store.state.currentHero,
+        ...this.$store.state.data.currentHero,
         powers: updatedPowers,
       };
       await this.updateCurrentHeroToAPI(updatedHero);
-      await this.getCurrentHeroFromAPI(this.$store.state.currentHero._id);
+      await this.getCurrentHeroFromAPI(this.$store.state.data.currentHero._id);
       this.closePowerDialog();
     },
   },
   async mounted() {
-    await this.getCurrentHeroFromAPI(this.$route.params.id);
-    if (!this.$store.state.currentHero) {
+    try {
+      await this.getCurrentHeroFromAPI(this.$route.params.id);
+    } catch (e) {
       this.dialogVisible = true;
+      this.setCurrentHero(null)
+      this.pushError(e);
     }
   },
 }

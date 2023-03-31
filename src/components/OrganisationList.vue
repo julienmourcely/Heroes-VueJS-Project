@@ -2,7 +2,7 @@
   <v-container>
     <v-data-table
         :headers="headersOrg"
-        :items="this.$store.state.orgs"
+        :items="this.$store.state.data.orgs"
         class="elevation-1"
         density="compact"
         item-key="id">
@@ -98,7 +98,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['getOrgsFromAPI', 'createOrgFromAPI']),
+    ...mapActions('data',['getOrgsFromAPI', 'createOrgFromAPI']),
     goTo(item) {
       this.$router.push("/org/" + item._id);
     },

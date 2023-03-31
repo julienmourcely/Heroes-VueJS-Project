@@ -1,39 +1,27 @@
 <template>
-
   <v-container>
-    <v-text-field
-      v-model="password">
-    </v-text-field>
+    <v-text-field v-model="password"></v-text-field>
 
-    <v-btn
-      @click="setCurrentPassword(password)">
+    <v-btn @click="updatePassword(password)">
       Confirm password
     </v-btn>
 
-    <p>Mot de passe actuel : {{this.$store.state.currentPassword}}</p>
-
+    <p>Mot de passe actuel : {{this.$store.state.authenticate.currentPassword}}</p>
   </v-container>
-
 </template>
 
 <script>
-
-import store from "@/store";
+import { mapActions } from "vuex";
 
 export default {
   name: "AuthenticateView",
   data: () => ({
-    password: ''
+    password: "",
   }),
   methods: {
-    setCurrentPassword(password) {
-      store.commit('setCurrentPassword', password)
-    },
+    ...mapActions('authenticate', ['updatePassword']),
   },
-
-}
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -1,13 +1,13 @@
 <template>
   <div>
-    <v-container v-if="this.$store.state.currentOrg">
+    <v-container v-if="!(this.$store.state.errors.isError) && this.$store.state.data.currentOrg!==null">
 
-    <p>Id : {{this.$store.state.currentOrg._id}}</p>
-    <p>Name : {{this.$store.state.currentOrg.name}}</p>
-    <p> Password : {{this.$store.state.currentOrg.secret}}</p>
+    <p>Id : {{this.$store.state.data.currentOrg._id}}</p>
+    <p>Name : {{this.$store.state.data.currentOrg.name}}</p>
+    <p> Password : {{this.$store.state.data.currentOrg.secret}}</p>
       <v-data-table
           :headers="headersTeams"
-          :items="this.$store.state.currentOrg.teams"
+          :items="this.$store.state.data.currentOrg.teams"
           class="elevation-1"
           density="compact"
           item-key="id"
@@ -103,7 +103,7 @@
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import {mapActions, mapMutations} from "vuex";
 export default {
   name: "OrganisationDetail",
   data: () => ({
@@ -124,11 +124,14 @@ export default {
     ]
   }),
   methods: {
-    ...mapActions(['getCurrentOrgFromAPI','removeTeamFromCurrentOrgToAPI','addTeamToCurrentOrgToAPI','getTeamsFromAPI']),
+    ...mapActions('data', ['getCurrentOrgFromAPI','removeTeamFromCurrentOrgToAPI','addTeamToCurrentOrgToAPI','getTeamsFromAPI']),
+    ...mapMutations('data' , ['setCurrentOrg']),
+    ...mapMutations('errors', ['pushError','popError']),
     goToTeam(item) {
       this.$router.push("/team/" + item._id);
     },
     async redirectToOrgs(){
+      this.popError();
       await this.$router.push("/orgs");
     },
     async deleteTeam(item) {
@@ -139,10 +142,10 @@ export default {
     },
     async loadAvailableTeams() {
       await this.getTeamsFromAPI();
-      if (this.$store.state.currentOrg!==null) {
-        this.availableTeams = this.$store.state.teams.filter(team => {
-          return !this.$store.state.currentOrg.teams.some(teamOrg => teamOrg._id === team._id);
-        });
+      if (this.$store.state.data.currentOrg!==null) {
+          this.availableTeams = this.$store.state.data.teams.filter(team => {
+            return !this.$store.state.data.currentOrg.teams.some(teamOrg => teamOrg._id === team._id);
+          });
       }
     },
     async addTeam() {
@@ -157,10 +160,13 @@ export default {
     },
   },
   async mounted() {
-    await this.getCurrentOrgFromAPI(this.$route.params.id);
-    await this.loadAvailableTeams();
-    if (!this.$store.state.currentOrg) {
+    try {
+      await this.getCurrentOrgFromAPI(this.$route.params.id);
+      await this.loadAvailableTeams();
+    } catch (e) {
       this.dialogVisible = true;
+      this.setCurrentOrg(null)
+      this.pushError(e);
     }
   },
 }

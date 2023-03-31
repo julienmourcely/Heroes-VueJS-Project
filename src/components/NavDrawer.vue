@@ -8,7 +8,7 @@
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" app>
       <v-list>
-        <v-list-item v-for="(link, index) in titles" :key="index" @click="goTo(index)">
+        <v-list-item v-for="(link, index) in titles" :key="index" @click="navigateTo(link.path)">
           <v-list-item-content>
             <v-list-item-title>
               <slot name="link-to" :link="link"> {{link.text}} </slot>
@@ -40,7 +40,11 @@ export default {
     goToAuthenticate() {
       this.$router.push('/authenticate')
       this.drawer = false
-    }
+    },
+    navigateTo(path) {
+      const resolvedPath = typeof path === "function" ? path() : path;
+      this.$router.push(resolvedPath);
+    },
   }
 }
 </script>

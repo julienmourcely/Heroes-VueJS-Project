@@ -3,7 +3,7 @@
     <v-container>
       <v-data-table
           :headers="headersTeam"
-          :items="this.$store.state.teams"
+          :items="this.$store.state.data.teams"
           class="elevation-1"
           density="compact"
           item-key="id">
@@ -74,7 +74,7 @@ export default {
 
   }),
   methods: {
-    ...mapActions(['getTeamsFromAPI','createTeamFromAPI' ]),
+    ...mapActions('data', ['getTeamsFromAPI','createTeamFromAPI' ]),
     goTo(item) {
       this.$router.push("/team/" + item._id)
     },

@@ -1,8 +1,8 @@
 <template>
-  <v-container v-if="this.$store.state.currentTeam">
+  <v-container v-if="this.$store.state.data.currentTeam!==null && !(this.$store.state.errors.isError)">
 
-    <p>Id : {{this.$store.state.currentTeam._id}}</p>
-    <p>Name : {{this.$store.state.currentTeam.name}}</p>
+    <p>Id : {{this.$store.state.data.currentTeam._id}}</p>
+    <p>Name : {{this.$store.state.data.currentTeam.name}}</p>
     <p>Members : </p>
     <v-data-table
         :headers="headersMembers"
@@ -98,7 +98,7 @@
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import {mapActions, mapMutations} from "vuex";
 
 export default {
   name: "TeamDetail",
@@ -122,27 +122,30 @@ export default {
     availableHeroes: [],
   }),
   methods: {
-    ...mapActions([
+    ...mapActions('data',[
       'getCurrentTeamFromAPI',
       'getHeroesFromAPI',
       'getCurrentHeroFromAPI',
       'removeHeroesFromCurrentTeamToAPI',
       'addHeroesToCurrentTeamToAPI',
     ]),
+    ...mapMutations('data', ['setCurrentTeam']),
+    ...mapMutations('errors', ['pushError','popError']),
 
     async goTo(item) {
       await this.$router.push("/hero/" + item._id);
     },
 
     async redirectToTeams() {
+      await this.popError()
       await this.$router.push("/teams");
     },
 
     async deleteItem(item) {
       if (confirm("Are you sure you want to delete this member?")) {
-        await this.removeHeroesFromCurrentTeamToAPI({ idHeroes: [item._id], idTeam: this.$store.state.currentTeam._id });
+        await this.removeHeroesFromCurrentTeamToAPI({ idHeroes: [item._id], idTeam: this.$store.state.data.currentTeam._id });
         await this.getCurrentTeamFromAPI(this.$route.params.id);
-        await this.getHeroesInfos(this.$store.state.currentTeam)
+        await this.getHeroesInfos(this.$store.state.data.currentTeam)
       }
     },
     async getHeroesInfos(team) {
@@ -153,7 +156,7 @@ export default {
       if (team.members === undefined) return;
       for (let m of team.members) {
         await this.getCurrentHeroFromAPI(m);
-        let hero = this.$store.state.currentHero;
+        let hero = this.$store.state.data.currentHero;
         this.heroes.push(hero);
       }
     },
@@ -161,12 +164,13 @@ export default {
       this.selectedHero = null;
       this.validateAddBtnActive = false;
       this.addMemberDialog = false;
+
     },
     async addMember() {
       if (this.selectedHero) {
-        await this.addHeroesToCurrentTeamToAPI({ idHeroes: [this.selectedHero], idTeam: this.$store.state.currentTeam._id });
+        await this.addHeroesToCurrentTeamToAPI({ idHeroes: [this.selectedHero], idTeam: this.$store.state.data.currentTeam._id });
         await this.getCurrentTeamFromAPI(this.$route.params.id);
-        await this.getHeroesInfos(this.$store.state.currentTeam);
+        await this.getHeroesInfos(this.$store.state.data.currentTeam);
         await this.getAvailableHeroes();
         this.selectedHero = null;
       }
@@ -174,19 +178,24 @@ export default {
     },
     async getAvailableHeroes() {
       await this.getHeroesFromAPI();
-      const allHeroes = this.$store.state.heroes;
+      const allHeroes = this.$store.state.data.heroes;
       this.availableHeroes = allHeroes.filter(
-          (hero) => !this.heroes.some((member) => member._id === hero._id)
+          (hero) =>
+              !this.heroes.some((member) => {
+                return member._id === hero._id})
       );
     },
   },
   async mounted() {
-    await this.getCurrentTeamFromAPI(this.$route.params.id);
-    if (!this.$store.state.currentTeam) {
+    try {
+      await this.getCurrentTeamFromAPI(this.$route.params.id);
+      await this.getHeroesInfos(this.$store.state.data.currentTeam);
+      await this.getAvailableHeroes();
+    } catch (e) {
       this.dialogVisible = true;
+      this.setCurrentTeam(null)
+      this.pushError(e);
     }
-    await this.getHeroesInfos(this.$store.state.currentTeam);
-    await this.getAvailableHeroes();
   },
 }
 </script>

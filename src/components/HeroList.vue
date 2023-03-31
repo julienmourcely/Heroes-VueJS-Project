@@ -2,7 +2,7 @@
   <v-container>
     <v-data-table
         :headers="headersHero"
-        :items="this.$store.state.heroes"
+        :items="this.$store.state.data.heroes"
         class="elevation-1"
         density="compact"
         item-key="id">
@@ -98,7 +98,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['getHeroesFromAPI', 'createHeroFromAPI']),
+    ...mapActions('data', ['getHeroesFromAPI', 'createHeroFromAPI']),
     goTo(item) {
       this.$router.push("/hero/" + item._id);
     },
@@ -116,8 +116,8 @@ export default {
     },
 
   },
-  mounted() {
-    this.getHeroesFromAPI();
+  async mounted() {
+    await this.getHeroesFromAPI();
   }
 }
 </script>
