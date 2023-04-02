@@ -146,6 +146,7 @@ export default {
         await this.removeHeroesFromCurrentTeamToAPI({ idHeroes: [item._id], idTeam: this.$store.state.data.currentTeam._id });
         await this.getCurrentTeamFromAPI(this.$route.params.id);
         await this.getHeroesInfos(this.$store.state.data.currentTeam)
+        await this.getAvailableHeroes()
       }
     },
     async getHeroesInfos(team) {

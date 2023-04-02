@@ -29,6 +29,9 @@ export default {
     currentTeam() {
       return this.$store.state.data.currentTeam;
     },
+    currentHero() {
+      return this.$store.state.data.currentHero
+    }
     dynamicTitles() {
       return [
         { text: "Organisations", path: "/orgs" },
@@ -48,11 +51,6 @@ export default {
         }
       ];
     },
-  },
-  methods: {
-    goTo(path) {
-      this.$router.push(path)
-    }
   },
 };
 </script>

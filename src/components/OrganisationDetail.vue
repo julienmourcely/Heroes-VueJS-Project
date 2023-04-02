@@ -138,6 +138,7 @@ export default {
       if (confirm("Are you sure you want to delete this team ?")) {
         await this.removeTeamFromCurrentOrgToAPI({idTeam: item._id});
         await this.getCurrentOrgFromAPI(this.$route.params.id);
+        await this.loadAvailableTeams();
       }
     },
     async loadAvailableTeams() {
@@ -151,6 +152,7 @@ export default {
     async addTeam() {
       await this.addTeamToCurrentOrgToAPI({idTeam: this.selectedTeam});
       await this.getCurrentOrgFromAPI(this.$route.params.id);
+      await this.loadAvailableTeams()
       this.closeTeamDialog();
     },
     closeTeamDialog() {
